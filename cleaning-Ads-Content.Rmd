@@ -1,0 +1,65 @@
+---
+title: "Cleaning Ad Content"
+author: "David Jackson"
+date: "3/27/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(dlookr)
+library(scales)
+```
+
+### Import Data
+
+```{r}
+rm(list=ls())
+df <- read.csv("./Cleaning-Ads-Data.csv")
+df <- df %>% select(-xyz_campaign_id,-interest)
+```
+
+### Remove  xyz_campaign_id and interest
+
+```{r}
+df1 <- df %>% filter(age !="45-49")
+
+df1 %>% dlookr::diagnose_category(age)
+```
+
+### Sample Quantiles
+
+```{r}
+df %>% diagnose_numeric(Impressions)
+df2 <- df %>% filter(Impressions >6503.5) %>% ggplot() +
+  geom_histogram(aes(x=Impressions))
+```
+
+
+```{r}
+ggplot(df) + geom_histogram(aes(x=Clicks),bins=10) +labs(title="df")
+ggplot(df2) + geom_histogram(aes(x=Clicks),bins=10) + labs(title="df2") 
+  
+
+ggplot(df) + geom_histogram(aes(x=Impressions),bins=10) +
+ scale_x_continuous(labels = comma)
+```
+```{r}
+ggplot(df) + geom_histogram(aes(x=Clicks,fill="df")) +labs(title="Clicks") +
+geom_histogram(data=df2,aes(x=Clicks,fill="df2"))
+```
+
+
+```{r}
+ggplot(df) + geom_col(aes(x=age,y=Clicks)) +
+  labs(title="Clicks")
+ggplot(df) + geom_col(aes(x=age,y=Spent)) + labs(title="Spend")
+ggplot(df) + geom_col(aes(x=age,y=Impressions)) +
+  labs(title="Impressions")
+
+```
+
+

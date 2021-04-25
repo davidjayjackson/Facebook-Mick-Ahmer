@@ -1,0 +1,95 @@
+---
+title: "Untitled"
+author: "David Jackson"
+date: "4/24/2021"
+output: 
+  html_document: 
+    fig_width: 9
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(scales)
+library(dplyr)
+library(tidyr)
+library(dlookr)
+```
+
+#### 
+
+```{r}
+rm(list=ls())
+df <- read.csv("./Analysing-Trump-Tweets.csv")
+tw <- df %>% select(content:mentions)
+tw$Ymd <- as.Date(tw$date)
+
+```
+## First Plot
+
+```{r}
+ggplot(tw) + geom_line(aes(x=Ymd,y=retweets,col="retweets")) +
+  geom_line(aes(x=Ymd,y=favorites,col="favorites")) +
+  scale_y_continuous(labels=comma) +
+  labs(title="Title Here") +
+  theme(axis.text.x = element_text(angle = 90)) 
+  
+  
+```
+```{r}
+ggplot(tw) + geom_point(aes(x=favorites,y=retweets)) +
+  scale_y_continuous(labels=comma) +
+  scale_x_continuous(labels = comma) +
+  geom_smooth(aes(x=favorites,y=retweets),method="lm") +
+    theme_linedraw()
+```
+
+### Count Charactors in Contents
+
+```{r}
+tw$Charactors <- nchar(df$content,allowNA =FALSE)
+summary(tw$Charactors)
+```
+```{r}
+ggplot(tw) + geom_point(aes(x=Charactors,y=retweets)) +
+  scale_y_continuous(labels=comma) +
+  scale_x_continuous(labels = comma) +
+  geom_smooth(aes(x=Charactors,y=retweets),method="lm") +
+    theme_linedraw()
+```
+```{r}
+ggplot(tw) + geom_point(aes(x=Charactors,y=favorites)) +
+  scale_y_continuous(labels=comma) +
+  scale_x_continuous(labels = comma) +
+  geom_smooth(aes(x=Charactors,y=favorites),method="lm") +
+    theme_linedraw() 
+```
+
+#### dlookr
+
+```{r}
+dlookr::diagnose_numeric(tw) %>% flextable::flextable()
+```
+
+#### Create New Variable: Mentioned
+
+```{r}
+tw$mentioned <- ifelse(tw$mentions != "", 1,0)
+table(tw$mentioned)
+
+```
+```{r}
+summary(tw$retweets)
+tw$RTGroup <- ifelse(tw$retweets <= 560 -1, 0,1)
+tw$RTGroup <- ifelse(tw$retweets >= 550 +1, 1,0)
+xtab <- table(tw$RTGroup,tw$mentioned)
+
+```
+```{r}
+plot(xtab)
+```
+
+```{r}
+chisq.test(xtab)
+
+

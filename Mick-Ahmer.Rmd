@@ -1,0 +1,75 @@
+---
+title: "International Bussiness"
+author: "Mick Ahmer"
+date: "3/13/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,message = FALSE,error=FALSE,)
+
+library(ggplot2)
+library(dplyr)
+library(anytime)
+library(flextable)
+```
+
+## R Markdown
+* text
+The quuick aaaaaa 
+
+```{r}
+df <- read.csv("./BA.csv")
+colnames(df) <- c("Names")
+rename(new_name = old_name)
+df <-tidyr::separate(df,Names, c("branchID","date","product","sales"), sep = ",")
+df <- df %>% filter(branchID =="1742" | branchID == "4071" | branchID == "5181")
+
+df$branchID <- as.numeric(df$branchID)
+df$sales <- as.numeric(df$sales)
+df$date <- as.Date(df$date)
+str(df)
+summary(df$sales)
+```
+
+### Total Quantity of Phones 
+
+```{r}
+sales <- df %>% select(product,sales) %>%
+  group_by(product) %>% summarise(Total = sum(sales)) 
+flextable::flextable(sales)
+
+```
+
+### Sales by Branch and Phones
+
+```{r}
+branch_sales <- df %>% group_by(product,branchID) %>%
+  summarise(Sales = sum(sales))
+
+branch_sales %>% flextable() 
+
+```
+Branch Winners
+
+* Phone: EggPhoneX| Branch: 4071 | Sales: 923
+* Phone: Milky S20 | Branch: 1211 | Sales: 1211
+* Phone: Yu Note 12 | Branch: 5181 | Sale: 846
+
+### Sales for Branch 5187 for Milky S20
+
+```{r}
+milky_sales <- df %>% filter(branchID == "5181" & product == '"Milky S20"' )
+
+ggplot(milky_sales) + geom_col(aes(x=date,y=sales)) +
+  labs(title=" Branch 5181 Sales of MilkyS20 Phone")
+```
+
+```{r}
+ggplot(df) + geom_col(aes(x=date,y=sales,fill=product)) +
+  facet_wrap(~product,ncol=2,scales="free_y") +
+  labs(title="Phone Sales Summary by Product",x="Month of Sales",y="Number Sold")
+scale_y_continuous(labels = percent)
+```
+
+
